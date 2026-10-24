@@ -246,13 +246,12 @@ def magic_circle(S=1024):
     pat = ((glyph * 8).astype(int) >> np.clip(sub, 0, 2)) & 1
     frac = np.abs(((th / (2 * np.pi) + 0.5) * 36) % 1 - 0.5)
     a = np.maximum(a, band * pat * smooth(0.42, 0.32, frac) * smooth(0.0, 0.004, np.minimum(r - 0.74, 0.86 - r)))
-    # hexagram (two triangles) inside
-    for rot in (0, np.pi / 3):
-        for k in range(3):
-            ang = rot + k * 2 * np.pi / 3 + np.pi / 2
-            nx, ny = np.cos(ang), np.sin(ang)
-            d = u * nx + v * ny + 0.33
-            a = np.maximum(a, line(d, 0.004) * (r < 0.67))
+    # inner pattern: radial spokes between the inner rings + a dotted ring (no stars / polygons)
+    spokes = np.abs(((th / (2 * np.pi) * 24) % 1) - 0.5)
+    a = np.maximum(a, (r > 0.36) * (r < 0.64) * smooth(0.06, 0.02, spokes) * 0.85)
+    dots = np.abs(((th / (2 * np.pi) * 48) % 1) - 0.5)
+    a = np.maximum(a, smooth(0.012, 0.004, np.abs(r - 0.5)) * smooth(0.25, 0.15, dots))
+    a = np.maximum(a, line(r - 0.16, 0.004))
     a = np.maximum(a, np.exp(-((r - 0.96) / 0.05) ** 2) * 0.25)
     return to_rgba(np.clip(a, 0, 1))
 
